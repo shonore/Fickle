@@ -32,7 +32,7 @@ const GET_RESTAURANT = gql`
 
 export default function HomeScreen() {
     const [location, setLocation] = useState(null);
-    const [termText, onChangeTermText] = useState();
+    const [termText, onChangeTermText] = useState(null);
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState(null);
     const [priceItems, setPriceItems] = useState([
@@ -42,7 +42,7 @@ export default function HomeScreen() {
     ]);
     const [showResults, setShowResults] = useState(false);
     const [results, setResults] = useState({});
-    const [getRestaurant, { loading, data }] = useLazyQuery(GET_RESTAURANT);
+    const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
     useEffect(() => {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
@@ -61,6 +61,7 @@ export default function HomeScreen() {
         setResults(data);
     }  
     if (loading) (<View><Text>Loading...</Text></View>);
+    if(error)console.log(error)
   return (
     <View style={styles.container}>
         <Text>Let us know what your in the mood for and we will pick dinner for you. </Text>
@@ -82,7 +83,7 @@ export default function HomeScreen() {
         <Button 
             title="Pick Restaurant" 
             style={styles.button}
-            onPress={() => getRestaurant({fetchPolicy: "network-only",variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}
+            onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}
             >           
         </Button>
         {showResults && 
