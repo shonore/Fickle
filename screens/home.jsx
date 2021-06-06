@@ -1,29 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
 
 const GET_RESTAURANT = gql`
- query Search($term: String, $latitude: Float!, $longitude: Float!, $price: String){
+ query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
     search(
         term: $term
         latitude: $latitude,
         longitude: $longitude,
         price: $price,
         open_now: true,
-        radius: 25000,
+        radius: 40000,
+        limit: 50,
+        offset: 10 
         ) {
         total
         business {
             name
             rating
-            review_count
+            price
+            url
+            phone
             location {
                 address1
+                address2
                 city
                 state
-                country
+                
             }
         }
     }
@@ -31,17 +36,16 @@ const GET_RESTAURANT = gql`
 `
 
 export default function HomeScreen() {
-    const [location, setLocation] = useState(null);
-    const [termText, onChangeTermText] = useState(null);
+    const [location, setLocation] = useState();
+    const [termText, onChangeTermText] = useState();
     const [open, setOpen] = useState(false);
-    const [priceValue, setPriceValue] = useState(null);
+    const [priceValue, setPriceValue] = useState();
     const [priceItems, setPriceItems] = useState([
-        {label: '$', value: '$'},
-        {label: '$$', value: '$$'},
-        {label: '$$$', value: '$$$'}
+        {label: '$', value: '1'},
+        {label: '$$', value: '2'},
+        {label: '$$$', value: '3'}
     ]);
-    const [showResults, setShowResults] = useState(false);
-    const [results, setResults] = useState({});
+    const ref = useRef(null)
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
     useEffect(() => {
         (async () => {
@@ -55,13 +59,9 @@ export default function HomeScreen() {
           setLocation(location);
         })();
       }, []);
-    if(data){
-        console.log(data);
-        setShowResults(true);
-        setResults(data);
-    }  
     if (loading) (<View><Text>Loading...</Text></View>);
-    if(error)console.log(error)
+    if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
+  
   return (
     <View style={styles.container}>
         <Text>Let us know what your in the mood for and we will pick dinner for you. </Text>
@@ -86,9 +86,15 @@ export default function HomeScreen() {
             onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}
             >           
         </Button>
-        {showResults && 
-            <Text>{results}</Text>
-        }
+        <Text>{error && error.message}</Text>
+        {data?.search?.total > 0 && 
+        <>
+            <Text>You should eat at </Text>
+            <Text>{data.search.business[ref.current]?.name}</Text>
+            <Text>Phone: {data.search.business[ref.current]?.phone}</Text>
+            <Text>Website: {data.search.business[ref.current]?.url}</Text>   
+        </> 
+        }       
     </View>
   );
 }
