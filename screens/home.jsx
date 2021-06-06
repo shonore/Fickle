@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { View, Text, StyleSheet, TextInput, Button, Linking, TouchableOpacity } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
@@ -23,6 +23,7 @@ const GET_RESTAURANT = gql`
             price
             url
             phone
+            distance
             location {
                 address1
                 address2
@@ -47,6 +48,7 @@ export default function HomeScreen() {
     ]);
     const ref = useRef(null)
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
+
     useEffect(() => {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
@@ -61,10 +63,27 @@ export default function HomeScreen() {
       }, []);
     if (loading) (<View><Text>Loading...</Text></View>);
     if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
+
+    const OpenURLButton = ({ url, children }) => {
+        const handlePress = useCallback(async () => {
+          // Checking if the link is supported for links with custom URL scheme.
+          const supported = await Linking.canOpenURL(url);
+      
+          if (supported) {
+            // Opening the link with some app, if the URL scheme is "http" the web link should be opened
+            // by some browser in the mobile
+            await Linking.openURL(url);
+          } else {
+            Alert.alert(`Don't know how to open this URL: ${url}`);
+          }
+        }, [url]);
+      
+        return <Button title={children} onPress={handlePress} />;
+      };
   
   return (
     <View style={styles.container}>
-        <Text>Let us know what your in the mood for and we will pick dinner for you. </Text>
+        <Text style={styles.header}>Let us know what your in the mood for and we will pick dinner for you. </Text>
         <DropDownPicker
             open={open}
             value={priceValue}
@@ -80,19 +99,18 @@ export default function HomeScreen() {
             value={termText}
             placeholder="Search Term (Optional)"
         />
-        <Button 
-            title="Pick Restaurant" 
-            style={styles.button}
-            onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}
-            >           
-        </Button>
+        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}>
+            <Text style={styles.buttonTxt}>Pick Restaurant</Text>
+        </TouchableOpacity>         
         <Text>{error && error.message}</Text>
         {data?.search?.total > 0 && 
         <>
             <Text>You should eat at </Text>
-            <Text>{data.search.business[ref.current]?.name}</Text>
-            <Text>Phone: {data.search.business[ref.current]?.phone}</Text>
-            <Text>Website: {data.search.business[ref.current]?.url}</Text>   
+            <Text style={styles.results}>{data.search.business[ref.current]?.name}</Text>
+            <Text>Price: {data.search.business[ref.current]?.price}</Text>
+            <Text>Distance: {(data.search.business[ref.current]?.distance*0.000621371192).toFixed(2)} miles away</Text>
+            <Button title="Call Business" onPress={() => Linking.openURL(`tel://${data.search.business[ref.current]?.phone.toString()}`)}>{data.search.business[ref.current]?.phone}</Button>
+            <OpenURLButton url={data.search.business[ref.current]?.url}>View on Yelp</OpenURLButton>  
         </> 
         }       
     </View>
@@ -100,22 +118,39 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+    header: {
+        width: "100%",
+        marginBottom: 20,
+        fontSize: 20, 
+        textAlign: "center"
+    },
+    results: {
+        width: "100%",
+        textAlign: "center", 
+        fontSize: 20
+    },
     button: {
         width: "100%",
         height: 40,
-        borderWidth: 1,
-        padding: 10
+        padding: 10,
+        marginTop: 10,
+        backgroundColor: "#7AEDC5"
+    },
+    buttonTxt: {
+        color:'#595959',
+        textAlign: "center"
     },
     container: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        margin: 15
+        margin: 15,
     },
     input: {
         width: "100%",
         height: 40,
         borderWidth: 1,
         marginTop: 10,
+        padding: 10
       }
   });
