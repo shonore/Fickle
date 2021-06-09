@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "UPickApp",
-    "slug": "UPickApp",
+    "name": "U-Pick",
+    "slug": "U-Pick",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/u-pick-logo.png",
     "splash": {
       "image": "./assets/img/splash-screen/ios/splash.png",
       "resizeMode": "cover"
@@ -20,8 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/u-pick-logo.png",
       }
     },
     "web": {

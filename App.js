@@ -3,19 +3,16 @@ import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink} from '@apollo/cl
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/home'
-import { REACT_APP_API_KEY,REACT_APP_ENDPOINT } from '@env'
+import { REACT_APP_API_KEY,REACT_APP_URL } from '@env'
 
 const client = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({   
-    uri: REACT_APP_ENDPOINT, 
+    uri: REACT_APP_URL, 
     headers: {
+      'Accept-Language': "en_US",
       authorization: `Bearer ${REACT_APP_API_KEY}`,
     }, 
-    onError: ({ networkError, graphQLErrors }) => {       
-      console.log('graphQLErrors', graphQLErrors)       
-      console.log('networkError', networkError)     
-    }   
   })
 });
 

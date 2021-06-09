@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, StyleSheet, TextInput, Button, Linking, TouchableOpacity } from 'react-native';
+import { SafeAreaView, Text, ActivityIndicator,ScrollView, StyleSheet, TextInput, Button, Linking, TouchableOpacity, Image, Alert } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
+import { CloseCircleO } from '@expo/vector-icons';
 
 const GET_RESTAURANT = gql`
  query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
@@ -12,9 +13,8 @@ const GET_RESTAURANT = gql`
         longitude: $longitude,
         price: $price,
         open_now: true,
-        radius: 40000,
-        limit: 50,
-        offset: 10 
+        radius: 16100,
+        limit: 50
         ) {
         total
         business {
@@ -38,6 +38,7 @@ const GET_RESTAURANT = gql`
 
 export default function HomeScreen() {
     const [location, setLocation] = useState();
+    const [errorMsg, setErrorMsg] = useState();
     const [termText, onChangeTermText] = useState();
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState();
@@ -46,13 +47,14 @@ export default function HomeScreen() {
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
     ]);
-    const ref = useRef(null)
+    const ref = useRef(null);
+    let controller = null; 
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
 
     useEffect(() => {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') {
+          if (status && status !== 'granted') {
             setErrorMsg('Permission to access location was denied');
             return;
           }
@@ -61,7 +63,7 @@ export default function HomeScreen() {
           setLocation(location);
         })();
       }, []);
-    if (loading) (<View><Text>Loading...</Text></View>);
+    if (loading) (<SafeAreaView><ActivityIndicator size="large" /></SafeAreaView>);
     if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
 
     const OpenURLButton = ({ url, children }) => {
@@ -82,8 +84,12 @@ export default function HomeScreen() {
       };
   
   return (
-    <View style={styles.container}>
-        <Text style={styles.header}>Let us know what your in the mood for and we will pick dinner for you. </Text>
+    <SafeAreaView style={styles.container}>
+        <Image
+            style={styles.logo}
+            source={require('../assets/u-pick-logo.png')}
+        />
+        <Text style={styles.header}>Let us know what you're in the mood for and we will pick dinner for you. </Text>
         <DropDownPicker
             open={open}
             value={priceValue}
@@ -91,7 +97,10 @@ export default function HomeScreen() {
             setOpen={setOpen}
             setValue={setPriceValue}
             setItems={setPriceItems}
-            placeholder="Enter a price"
+            closeAfterSelecting={true}
+            placeholder="Enter a price (Optional)"
+            placeholderStyle={{color: "grey"}}
+            controller={instance => controller = instance}
         />
         <TextInput
             style={styles.input}
@@ -99,7 +108,7 @@ export default function HomeScreen() {
             value={termText}
             placeholder="Search Term (Optional)"
         />
-        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location.coords.latitude, longitude: location.coords.longitude, price: priceValue}})}>
+        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue, offset: Math.floor(Math.random() * 50) + 1}})}>
             <Text style={styles.buttonTxt}>Pick Restaurant</Text>
         </TouchableOpacity>         
         <Text>{error && error.message}</Text>
@@ -109,11 +118,11 @@ export default function HomeScreen() {
             <Text style={styles.results}>{data.search.business[ref.current]?.name}</Text>
             <Text>Price: {data.search.business[ref.current]?.price}</Text>
             <Text>Distance: {(data.search.business[ref.current]?.distance*0.000621371192).toFixed(2)} miles away</Text>
-            <Button title="Call Business" onPress={() => Linking.openURL(`tel://${data.search.business[ref.current]?.phone.toString()}`)}>{data.search.business[ref.current]?.phone}</Button>
+            <Button title="Call Business" onPress={() => Linking.openURL(`tel:${data.search.business[ref.current]?.phone}`)}>{data.search.business[ref.current]?.phone}</Button>
             <OpenURLButton url={data.search.business[ref.current]?.url}>View on Yelp</OpenURLButton>  
         </> 
-        }       
-    </View>
+        }
+    </SafeAreaView>
   );
 }
 
@@ -121,13 +130,13 @@ const styles = StyleSheet.create({
     header: {
         width: "100%",
         marginBottom: 20,
-        fontSize: 20, 
+        fontSize: 15, 
         textAlign: "center"
     },
     results: {
         width: "100%",
         textAlign: "center", 
-        fontSize: 20
+        fontSize: 15
     },
     button: {
         width: "100%",
@@ -143,7 +152,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         margin: 15,
     },
     input: {
@@ -152,5 +161,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         marginTop: 10,
         padding: 10
+      },
+      logo: {
+          width: 100,
+          height: 100
       }
   });
