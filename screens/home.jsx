@@ -3,7 +3,6 @@ import { SafeAreaView, Text, ActivityIndicator,ScrollView, StyleSheet, TextInput
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
-import { CloseCircleO } from '@expo/vector-icons';
 
 const GET_RESTAURANT = gql`
  query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
@@ -43,12 +42,12 @@ export default function HomeScreen() {
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState();
     const [priceItems, setPriceItems] = useState([
+        {label: 'any', value: '1,2,3'},
         {label: '$', value: '1'},
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
     ]);
     const ref = useRef(null);
-    let controller = null; 
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
 
     useEffect(() => {
@@ -85,6 +84,7 @@ export default function HomeScreen() {
   
   return (
     <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <Image
             style={styles.logo}
             source={require('../assets/u-pick-logo.png')}
@@ -122,6 +122,7 @@ export default function HomeScreen() {
             <OpenURLButton url={data.search.business[ref.current]?.url}>View on Yelp</OpenURLButton>  
         </> 
         }
+        </ScrollView>
     </SafeAreaView>
   );
 }
@@ -150,10 +151,13 @@ const styles = StyleSheet.create({
         textAlign: "center"
     },
     container: {
-        flex: 1,
+        flex: 1,       
+        height: "100%",
+        margin: 15,
+    },
+    scrollViewContent: {        
         alignItems: 'center',
         justifyContent: 'flex-start',
-        margin: 15,
     },
     input: {
         width: "100%",
