@@ -36,16 +36,15 @@ const GET_RESTAURANT = gql`
 
 export default function HomeScreen() {
     const [location, setLocation] = useState();
-    const [errorMsg, setErrorMsg] = useState();
-    const [termText, onChangeTermText] = useState();
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState();
-    const [priceItems, setPriceItems] = useState([
+    const priceItems = [
         {label: 'any', value: '1,2,3'},
         {label: '$', value: '1'},
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
-    ]);
+    ]
+    const termText = useRef();
     const ref = useRef(null);
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
 
@@ -53,7 +52,7 @@ export default function HomeScreen() {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
           if (status && status !== 'granted') {
-            setErrorMsg('Permission to access location was denied');
+            Alert.alert('Permission to access location was denied');
             return;
           }
     
@@ -63,7 +62,7 @@ export default function HomeScreen() {
       }, []);
 
     if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
-
+      
     const OpenURLButton = ({ url, children }) => {
         const handlePress = useCallback(async () => {
           // Checking if the link is supported for links with custom URL scheme.
@@ -80,6 +79,7 @@ export default function HomeScreen() {
       
         return <Button title={children} onPress={handlePress} />;
     };
+
     const getHeader = () => {
         return (
             <SafeAreaView style={styles.container}>
@@ -94,7 +94,6 @@ export default function HomeScreen() {
             items={priceItems}
             setOpen={setOpen}
             setValue={setPriceValue}
-            setItems={setPriceItems}
             closeAfterSelecting={true}
             placeholder="Enter a price (Optional)"
             placeholderStyle={{color: "grey"}}
@@ -102,20 +101,23 @@ export default function HomeScreen() {
         />
         <TextInput
             style={styles.input}
-            onChangeText={onChangeTermText}
-            value={termText}
+            //onEndEditing={({nativeEvent}) => {termText.current = nativeEvent.text}}
+            onChangeText={text => termText.current = text}
+            //value={termText.current}
             placeholder="Search Term (Optional)"
         />
         <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue, offset: Math.floor(Math.random() * 50) + 1}})}>
             <Text style={styles.buttonTxt}>Pick Restaurant</Text>
         </TouchableOpacity>         
-        <Text>{error && error.message}</Text>
         </SafeAreaView>
         )
     };
     const getFooter = () => {
         if (loading) {        
             return (<SafeAreaView style={styles.container}><ActivityIndicator size="large" /></SafeAreaView>);
+        }
+        if(error){
+            return (<Text>{error.message}</Text>)
         }
         return null
     };
@@ -126,13 +128,14 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         data={data?.search.business.filter(item => item === data?.search.business[ref.current])}
         ListHeaderComponent={getHeader}
+        ListFooterComponent={getFooter}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => {
             console.log(item)
             return (
             data?.search.total > 0 &&   
             <View>
-                <Text>You should eat at </Text>
+                <Text style={{textAlign:"center"}}>You should eat at </Text>
                 <Text style={styles.results}>{item?.name}</Text>
                 <Text>Price: {item?.price}</Text>
                 <Text>Distance: {(item?.distance*0.000621371192).toFixed(2)} miles away</Text>
