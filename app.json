@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "U-Pick",
-    "slug": "U-Pick",
+    "name": "Whim",
+    "slug": "Whim",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/u-pick-logo.png",
+    "icon": "./assets/whim-logo-square.png",
     "splash": {
       "image": "./assets/img/splash-screen/ios/splash.png",
       "resizeMode": "cover"
@@ -16,11 +16,12 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.smhonore.whim"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/u-pick-logo.png",
+        "foregroundImage": "./assets/whim-logo-square.png"
       }
     },
     "web": {

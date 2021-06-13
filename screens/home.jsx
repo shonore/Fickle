@@ -85,9 +85,9 @@ export default function HomeScreen() {
             <SafeAreaView style={styles.container}>
             <Image
             style={styles.logo}
-            source={require('../assets/u-pick-logo.png')}
+            source={require('../assets/whim-logo.png')}
         />
-        <Text style={styles.header}>Let us know what you're in the mood for and we will pick dinner for you. </Text>
+        <Text style={styles.header}>Let us simply pick where you eat on a whim.</Text>
         <DropDownPicker
             open={open}
             value={priceValue}
@@ -106,7 +106,7 @@ export default function HomeScreen() {
             //value={termText.current}
             placeholder="Search Term (Optional)"
         />
-        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue, offset: Math.floor(Math.random() * 50) + 1}})}>
+        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}>
             <Text style={styles.buttonTxt}>Pick Restaurant</Text>
         </TouchableOpacity>         
         </SafeAreaView>
