@@ -164,7 +164,10 @@ const styles = StyleSheet.create({
         height: 50,
         padding: 10,
         marginTop: 10,
-        backgroundColor: "#7AEDC5"
+        backgroundColor: "#7AEDC5",
+        alignContent: "center",
+        justifyContent: "center",
+        borderRadius: 10
     },
     buttonTxt: {
         color:'#595959',
@@ -189,7 +192,8 @@ const styles = StyleSheet.create({
         height: 50,
         borderWidth: 1,
         marginTop: 10,
-        padding: 10
+        padding: 10,
+        borderRadius: 10
       },
       logo: {
           width: 100,
