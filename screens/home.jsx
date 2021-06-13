@@ -85,31 +85,29 @@ export default function HomeScreen() {
             <SafeAreaView style={styles.container}>
             <Image
             style={styles.logo}
-            source={require('../assets/whim-logo.png')}
+            source={require('../assets/logo.png')}
         />
-        <Text style={styles.header}>Let us simply pick where you eat on a whim.</Text>
-        <DropDownPicker
-            open={open}
-            value={priceValue}
-            items={priceItems}
-            setOpen={setOpen}
-            setValue={setPriceValue}
-            closeAfterSelecting={true}
-            placeholder="Enter a price (Optional)"
-            placeholderStyle={{color: "grey"}}
-            style={styles.input}
-        />
-        <TextInput
-            style={styles.input}
-            //onEndEditing={({nativeEvent}) => {termText.current = nativeEvent.text}}
-            onChangeText={text => termText.current = text}
-            //value={termText.current}
-            placeholder="Search Term (Optional)"
-        />
-        <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}>
-            <Text style={styles.buttonTxt}>Pick Restaurant</Text>
-        </TouchableOpacity>         
-        </SafeAreaView>
+            <Text style={styles.header}>Let us simply pick where you eat on a whim.</Text>
+            <DropDownPicker
+                open={open}
+                value={priceValue}
+                items={priceItems}
+                setOpen={setOpen}
+                setValue={setPriceValue}
+                closeAfterSelecting={true}
+                placeholder="Enter a price (Optional)"
+                placeholderStyle={{color: "grey"}}
+                style={styles.input}
+            />
+            <TextInput
+                style={styles.input}
+                onChangeText={text => termText.current = text}
+                placeholder="Search Term (Optional)"
+            />
+            <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText.current, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
+                <Text style={styles.buttonTxt}>Pick Restaurant</Text>
+            </TouchableOpacity>         
+            </SafeAreaView>
         )
     };
     const getFooter = () => {
@@ -131,9 +129,8 @@ export default function HomeScreen() {
         ListFooterComponent={getFooter}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => {
-            console.log(item)
             return (
-            data?.search.total > 0 &&   
+            data?.search.total > 0 ?   
             <View>
                 <Text style={{textAlign:"center"}}>You should eat at </Text>
                 <Text style={styles.results}>{item?.name}</Text>
@@ -141,7 +138,8 @@ export default function HomeScreen() {
                 <Text>Distance: {(item?.distance*0.000621371192).toFixed(2)} miles away</Text>
                 <Button title={item?.phone ?? ""} onPress={() => Linking.openURL(`tel:${item.phone}`)}/>
                 <OpenURLButton url={item?.url}>View on Yelp</OpenURLButton>
-            </View> 
+            </View> :
+            <View><Text>No Results</Text></View>
             )
         }}
         >

@@ -23,7 +23,7 @@ export default function App() {
     <ApolloProvider client={client}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Whim" component={HomeScreen} />
+          <Stack.Screen name="Fickle" component={HomeScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ApolloProvider>

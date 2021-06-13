@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Whim",
-    "slug": "Whim",
+    "name": "Fickle",
+    "slug": "Fickle",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/whim-logo-square.png",
+    "icon": "./assets/logo-square.png",
     "splash": {
       "image": "./assets/img/splash-screen/ios/splash.png",
       "resizeMode": "cover"
@@ -17,11 +17,11 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.smhonore.whim"
+      "bundleIdentifier": "com.smhonore.fickle"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/whim-logo-square.png"
+        "foregroundImage": "./assets/logo-square.png"
       }
     },
     "web": {
