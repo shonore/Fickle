@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { FlatList, SafeAreaView,View, Text, ActivityIndicator,StyleSheet, TextInput, Button, Linking, TouchableOpacity, Image, Alert } from 'react-native';
+import { 
+    FlatList, 
+    SafeAreaView,
+    View, 
+    Text, 
+    ActivityIndicator,
+    StyleSheet, 
+    TextInput, 
+    Button, 
+    Linking, 
+    TouchableOpacity, 
+    Image, 
+    Alert} from 'react-native';
+import { Card, Divider } from 'react-native-elements'
+import { FontAwesome5 } from '@expo/vector-icons'; 
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
@@ -23,11 +37,12 @@ const GET_RESTAURANT = gql`
             url
             phone
             distance
+            coordinates {
+                latitude
+                longitude
+            }
             location {
-                address1
-                address2
-                city
-                state          
+                formatted_address       
             }
         }
     }
@@ -63,7 +78,7 @@ export default function HomeScreen() {
 
     if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
       
-    const OpenURLButton = ({ url, children }) => {
+    const OpenURLButton = ({ url, name }) => {
         const handlePress = useCallback(async () => {
           // Checking if the link is supported for links with custom URL scheme.
           const supported = await Linking.canOpenURL(url);
@@ -77,17 +92,26 @@ export default function HomeScreen() {
           }
         }, [url]);
       
-        return <Button title={children} onPress={handlePress} />;
+        return <FontAwesome5 style={styles.icon} name={name} size={24} color="red" onPress={handlePress} />;
     };
-
+    const openMap = (latitude, longitude) => {
+        if (Platform.OS === "ios") { 
+            Linking.openURL(`http://maps.apple.com/maps?daddr=${latitude},${longitude}`) 
+        }     
+        else { 
+            Linking.openURL(`http://maps.google.com/maps?daddr=${latitude},${longitude}`); 
+        }
+    }
     const getHeader = () => {
         return (
-            <SafeAreaView style={styles.container}>
-            <Image
-            style={styles.logo}
-            source={require('../assets/logo.png')}
-        />
-            <Text style={styles.header}>Let us simply pick where you eat on a whim.</Text>
+            <>
+            <View style={styles.logoContainer}>
+                <Image
+                style={styles.logo}
+                source={require('../assets/logo.png')}
+                />
+            </View>
+            <Text style={styles.header}>Let us pick where you eat so you can just enjoy</Text>
             <DropDownPicker
                 open={open}
                 value={priceValue}
@@ -107,7 +131,7 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText.current, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
                 <Text style={styles.buttonTxt}>Pick Restaurant</Text>
             </TouchableOpacity>         
-            </SafeAreaView>
+            </>
         )
     };
     const getFooter = () => {
@@ -117,12 +141,24 @@ export default function HomeScreen() {
         if(error){
             return (<Text>{error.message}</Text>)
         }
+        if(!data){
+            return(
+            <View>
+                <Text style={{textAlign:"center"}}>No Results</Text>
+                <Image style={styles.footerImg} source={require('../assets/img/woman-thinking.png')}></Image>
+            </View>)
+        }
+        else{
+            <View>
+                <Text>Cheers!</Text>
+            </View>
+        }
         return null
     };
   return (
     <SafeAreaView style={styles.container}>
         <FlatList 
-        styles={styles.flatListContainer}
+        style={styles.flatListContainer}
         contentContainerStyle={styles.content}
         data={data?.search.business.filter(item => item === data?.search.business[ref.current])}
         ListHeaderComponent={getHeader}
@@ -130,16 +166,22 @@ export default function HomeScreen() {
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => {
             return (
-            data?.search.total > 0 ?   
-            <View>
-                <Text style={{textAlign:"center"}}>You should eat at </Text>
-                <Text style={styles.results}>{item?.name}</Text>
-                <Text>Price: {item?.price}</Text>
-                <Text>Distance: {(item?.distance*0.000621371192).toFixed(2)} miles away</Text>
-                <Button title={item?.phone ?? ""} onPress={() => Linking.openURL(`tel:${item.phone}`)}/>
-                <OpenURLButton url={item?.url}>View on Yelp</OpenURLButton>
-            </View> :
-            <View><Text>No Results</Text></View>
+            data && data?.search.total > 0 &&   
+                <Card wrapperStyle={styles.card}>
+                    <Card.Image source={require('../assets/img/selection.jpg')}></Card.Image>
+                    <Card.Divider/>
+                    <Card.Title><Text style={styles.results}>{item?.name}</Text></Card.Title>
+                    <Card.Divider />
+                    <Text>Price: {item?.price}</Text>
+                    <Text>{item?.location.formatted_address}</Text>
+                    <Text>Distance: {(item?.distance*0.000621371192).toFixed(2)} miles away</Text>
+                    <Card.Divider />
+                    <View style={styles.iconContainer}>
+                        <FontAwesome5 style={styles.icon} name="directions" size={24} color="black" onPress={() => openMap(item?.coordinates.latitude, item?.coordinates.longitude)} />
+                        <FontAwesome5 style={styles.icon} name="phone" size={24} color="black" onPress={() => Linking.openURL(`tel:${item.phone}`)}/>
+                        <OpenURLButton url={item?.url} name="yelp" />
+                    </View>
+                </Card>
             )
         }}
         >
@@ -154,10 +196,23 @@ const styles = StyleSheet.create({
         fontSize: 15, 
         textAlign: "center"
     },
+    headerContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignContent: "center"
+    },
+    footerImg: {
+        width: 300,
+        height: 300
+    },
     results: {
         textAlign: "center", 
         fontSize: 20,
         marginBottom: 10
+    },
+    card: {
+        width: "100%",
+        height: 400
     },
     button: {
         width: 375,
@@ -173,19 +228,37 @@ const styles = StyleSheet.create({
         color:'#595959',
         textAlign: "center"
     },
+    iconContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: "center",
+        justifyContent: "center",
+        margin: 5
+    },
+    icon: {
+        width: 50,
+        height: 50,
+        padding: 11,
+        borderRadius: 25,
+        borderWidth: 1,
+        margin: 5
+    },
     container: {
         flex: 1,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        margin: 10
+        marginHorizontal: 10,
+        marginVertical: 5,
+        backgroundColor: "white"
     },
     content: {
         alignItems: 'center',
         justifyContent: 'flex-start',
-        textAlign: "center"    
+        textAlign: "center",
+        height: "100%"
     },
     flatListContainer: {
-        margin: 15,
+        flexGrow: 0
     },
     input: {
         width: 375,
@@ -196,7 +269,14 @@ const styles = StyleSheet.create({
         borderRadius: 10
       },
       logo: {
+          margin: "auto",
           width: 100,
           height: 100
+      },
+      logoContainer: {
+          flex: 0,
+          flexDirection: "row",
+          justifyContent: "center",
+          alignContent: "center"
       }
   });
