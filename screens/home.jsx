@@ -129,7 +129,7 @@ export default function HomeScreen() {
                 placeholder="Search Term (Optional)"
             />
             <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText.current, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
-                <Text style={styles.buttonTxt}>Pick Restaurant</Text>
+                <Text style={styles.buttonTxt}>Be Fickle</Text>
             </TouchableOpacity>         
             </>
         )
@@ -144,7 +144,7 @@ export default function HomeScreen() {
         if(!data){
             return(
             <View>
-                <Text style={{textAlign:"center"}}>No Results</Text>
+                <Text style={{textAlign:"center", margin: 5, fontSize: 20}}>No Results</Text>
                 <Image style={styles.footerImg} source={require('../assets/img/woman-thinking.png')}></Image>
             </View>)
         }
@@ -215,10 +215,10 @@ const styles = StyleSheet.create({
         height: 400
     },
     button: {
-        width: 375,
         height: 50,
         padding: 10,
         marginTop: 10,
+        marginHorizontal: 5,
         backgroundColor: "#7AEDC5",
         alignContent: "center",
         justifyContent: "center",
@@ -246,12 +246,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'flex-start',
-        marginHorizontal: 5,
-        marginVertical: 5,
+        justifyContent: 'center',
+        flexDirection: "row",
         backgroundColor: "white",
-        width: "100%",
-        height: "100%"
+        overflow: 'scroll'
     },
     content: {
         alignItems: 'center',
@@ -263,10 +261,10 @@ const styles = StyleSheet.create({
         flexGrow: 0
     },
     input: {
-        width: 375,
         height: 50,
         borderWidth: 1,
         marginTop: 10,
+        marginHorizontal: 10,
         padding: 10,
         borderRadius: 10
       },
