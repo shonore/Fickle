@@ -247,9 +247,11 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'flex-start',
-        marginHorizontal: 10,
+        marginHorizontal: 5,
         marginVertical: 5,
-        backgroundColor: "white"
+        backgroundColor: "white",
+        width: "100%",
+        height: "100%"
     },
     content: {
         alignItems: 'center',
