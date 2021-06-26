@@ -13,6 +13,7 @@ import {
     Image, 
     Alert} from 'react-native';
 import { Card } from 'react-native-elements'
+import { Formik } from 'formik';
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
@@ -54,14 +55,12 @@ export default function HomeScreen() {
     const [location, setLocation] = useState();
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState();
-    const [term, setTerm] = useState();
     const priceItems = [
         {label: 'any', value: '1,2,3'},
         {label: '$', value: '1'},
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
     ]
-    const termText = useRef("");
     const ref = useRef(null);
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
@@ -107,9 +106,17 @@ export default function HomeScreen() {
         }
     }
     const getHeader = () => {
+        if (loading) {        
+            return (<View style={styles.container}><ActivityIndicator size="large" /></View>);
+        }
         return (
-            <>
-            <View style={styles.logoContainer}>
+            <Formik
+            initialValues={{ term: ""}}
+            onSubmit={values => getRestaurant({errorPolicy: 'all' ,variables: {term: values.term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}
+            >
+            {({handleChange, handleBlur, handleSubmit, values}) => (
+                <>
+                <View style={styles.logoContainer}>
                 <Image
                 style={styles.logo}
                 source={require('../assets/logo.png')}
@@ -128,21 +135,22 @@ export default function HomeScreen() {
                 style={styles.input}
             />
             <TextInput
-                value={term}
+                value={values.term}
+                clearButtonMode={"always"}
                 style={styles.input}
-                onChangeText={setTerm}
+                onChangeText={handleChange('term')}
                 placeholder="Search Term (Optional)"
             />
-            <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
                 <Text style={styles.buttonTxt}>Be Fickle</Text>
-            </TouchableOpacity>         
-            </>
+            </TouchableOpacity>
+            </> 
+            )}                
+            </Formik>
         )
     };
     const getFooter = () => {
-        if (loading) {        
-            return (<View style={styles.container}><ActivityIndicator size="large" /></View>);
-        }
+        
         if(error){
             return (<Text>{error.message}</Text>)
         }
@@ -153,11 +161,7 @@ export default function HomeScreen() {
                 <Image style={styles.footerImg} source={require('../assets/img/woman-thinking.png')}></Image>
             </View>)
         }
-        else{
-            <View>
-                <Text>Cheers!</Text>
-            </View>
-        }
+
         return null
     };
   return (
@@ -166,7 +170,6 @@ export default function HomeScreen() {
         <FlatList 
         style={styles.flatListContainer}
         contentContainerStyle={styles.content}
-        onScroll={event => {event.nativeEvent.contentOffset.y = 200; event.nativeEvent.layoutMeasurement.height = 1000; console.log(event.nativeEvent)}}
         data={data?.search.business.filter(item => item === data?.search.business[ref.current])}
         ListHeaderComponent={getHeader}
         ListFooterComponent={getFooter}
