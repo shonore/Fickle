@@ -1,22 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { 
     FlatList, 
     SafeAreaView,
     View, 
+    ScrollView,
     Text, 
     ActivityIndicator,
     StyleSheet, 
-    TextInput, 
-    Button, 
+    TextInput,  
     Linking, 
     TouchableOpacity, 
     Image, 
     Alert} from 'react-native';
-import { Card, Divider } from 'react-native-elements'
+import { Card } from 'react-native-elements'
 import { FontAwesome5 } from '@expo/vector-icons'; 
 import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
+import {LogBox} from 'react-native';
 
 const GET_RESTAURANT = gql`
  query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
@@ -53,16 +54,17 @@ export default function HomeScreen() {
     const [location, setLocation] = useState();
     const [open, setOpen] = useState(false);
     const [priceValue, setPriceValue] = useState();
+    const [term, setTerm] = useState();
     const priceItems = [
         {label: 'any', value: '1,2,3'},
         {label: '$', value: '1'},
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
     ]
-    const termText = useRef();
+    const termText = useRef("");
     const ref = useRef(null);
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
-
+    LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
     useEffect(() => {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
@@ -76,7 +78,9 @@ export default function HomeScreen() {
         })();
       }, []);
 
-    if(data)ref.current = Math.floor(Math.random() * data.search.business.length)
+    if(data){
+        ref.current = Math.floor(Math.random() * data.search.business.length);
+    }
       
     const OpenURLButton = ({ url, name }) => {
         const handlePress = useCallback(async () => {
@@ -124,11 +128,12 @@ export default function HomeScreen() {
                 style={styles.input}
             />
             <TextInput
+                value={term}
                 style={styles.input}
-                onChangeText={text => termText.current = text}
+                onChangeText={setTerm}
                 placeholder="Search Term (Optional)"
             />
-            <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: termText.current, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
+            <TouchableOpacity style={styles.button} onPress={() => getRestaurant({errorPolicy: 'all' ,variables: {term: term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}>
                 <Text style={styles.buttonTxt}>Be Fickle</Text>
             </TouchableOpacity>         
             </>
@@ -136,7 +141,7 @@ export default function HomeScreen() {
     };
     const getFooter = () => {
         if (loading) {        
-            return (<SafeAreaView style={styles.container}><ActivityIndicator size="large" /></SafeAreaView>);
+            return (<View style={styles.container}><ActivityIndicator size="large" /></View>);
         }
         if(error){
             return (<Text>{error.message}</Text>)
@@ -156,10 +161,12 @@ export default function HomeScreen() {
         return null
     };
   return (
-    <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container}>
+        <ScrollView>
         <FlatList 
         style={styles.flatListContainer}
         contentContainerStyle={styles.content}
+        onScroll={event => {event.nativeEvent.contentOffset.y = 200; event.nativeEvent.layoutMeasurement.height = 1000; console.log(event.nativeEvent)}}
         data={data?.search.business.filter(item => item === data?.search.business[ref.current])}
         ListHeaderComponent={getHeader}
         ListFooterComponent={getFooter}
@@ -167,6 +174,7 @@ export default function HomeScreen() {
         renderItem={({item}) => {
             return (
             data && data?.search.total > 0 &&   
+             <View>
                 <Card wrapperStyle={styles.card}>
                     <Card.Image source={require('../assets/img/selection.jpg')}></Card.Image>
                     <Card.Divider/>
@@ -182,11 +190,13 @@ export default function HomeScreen() {
                         <OpenURLButton url={item?.url} name="yelp" />
                     </View>
                 </Card>
+                </View>
             )
         }}
-        >
-        </FlatList>        
-    </SafeAreaView>
+        >    
+        </FlatList>
+        </ScrollView>
+        </SafeAreaView>
   );
 }
 
@@ -211,7 +221,7 @@ const styles = StyleSheet.create({
         marginBottom: 10
     },
     card: {
-        width: "100%",
+        width: 300,
         height: 400
     },
     button: {
@@ -244,12 +254,14 @@ const styles = StyleSheet.create({
         margin: 5
     },
     container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
+        flex: 1,     
         flexDirection: "row",
         backgroundColor: "white",
-        overflow: 'scroll'
+        margin: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: "100%",
+        overflow: "scroll"
     },
     content: {
         alignItems: 'center',
@@ -258,10 +270,11 @@ const styles = StyleSheet.create({
         height: "100%"
     },
     flatListContainer: {
-        flexGrow: 0
+        marginBottom: 30
     },
     input: {
         height: 50,
+        width: 350,
         borderWidth: 1,
         marginTop: 10,
         marginHorizontal: 10,
