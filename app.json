@@ -2,7 +2,7 @@
   "expo": {
     "name": "Fickle",
     "slug": "Fickle",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/logo-square.png",
     "splash": {
@@ -17,7 +17,10 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.smhonore.fickle"
+      "bundleIdentifier": "com.smhonore.fickle",
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544/5662855259"
+      }
     },
     "android": {
       "adaptiveIcon": {

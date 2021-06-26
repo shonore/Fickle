@@ -19,6 +19,9 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import {gql,useLazyQuery } from '@apollo/client'
 import * as Location from 'expo-location';
 import {LogBox} from 'react-native';
+import {
+    AdMobBanner,
+  } from 'expo-ads-admob';
 
 const GET_RESTAURANT = gql`
  query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
@@ -75,6 +78,9 @@ export default function HomeScreen() {
           let location = await Location.getCurrentPositionAsync({});
           setLocation(location);
         })();
+        // (async () => {
+        //     await setTestDeviceIDAsync('EMULATOR');
+        // })(); 
       }, []);
 
     if(data){
@@ -105,18 +111,24 @@ export default function HomeScreen() {
             Linking.openURL(`http://maps.google.com/maps?daddr=${latitude},${longitude}`); 
         }
     }
-    const getHeader = () => {
+    const getHeader = () => {;
         if (loading) {        
             return (<View style={styles.container}><ActivityIndicator size="large" /></View>);
         }
         return (
             <Formik
-            initialValues={{ term: ""}}
+            initialValues={{ term: null}}
             onSubmit={values => getRestaurant({errorPolicy: 'all' ,variables: {term: values.term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}
             >
-            {({handleChange, handleBlur, handleSubmit, values}) => (
-                <>
-                <View style={styles.logoContainer}>
+            {({handleChange, handleSubmit, values}) => (
+            <>
+            <AdMobBanner
+                bannerSize="smartBannerPortrait"
+                adUnitID="ca-app-pub-3940256099942544/5662855259"
+                servePersonalizedAds={true}
+                //onDidFailToReceiveAdWithError={this.bannerError} 
+                />
+            <View style={styles.logoContainer}>
                 <Image
                 style={styles.logo}
                 source={require('../assets/logo.png')}
