@@ -191,8 +191,7 @@ export default function HomeScreen() {
             data && data?.search.total > 0 &&   
              <View>
                 <Card wrapperStyle={styles.card}>
-                    <Card.Image source={require('../assets/img/selection.jpg')}></Card.Image>
-                    <Card.Divider/>
+                    
                     <Card.Title><Text style={styles.results}>{item?.name}</Text></Card.Title>
                     <Card.Divider />
                     <Text>Price: {item?.price}</Text>
@@ -204,6 +203,8 @@ export default function HomeScreen() {
                         <FontAwesome5 style={styles.icon} name="phone" size={24} color="black" onPress={() => Linking.openURL(`tel:${item.phone}`)}/>
                         <OpenURLButton url={item?.url} name="yelp" />
                     </View>
+                    <Card.Divider/>
+                    <Card.Image source={require('../assets/img/selection.jpg')}></Card.Image>                   
                 </Card>
                 </View>
             )
@@ -258,7 +259,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         justifyContent: "center",
-        margin: 5
     },
     icon: {
         width: 50,
@@ -276,7 +276,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         height: "100%",
-        overflow: "scroll"
     },
     content: {
         alignItems: 'center',
