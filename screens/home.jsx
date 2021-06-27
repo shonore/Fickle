@@ -21,6 +21,7 @@ import * as Location from 'expo-location';
 import {LogBox} from 'react-native';
 import {
     AdMobBanner,
+    setTestDeviceIDAsync
   } from 'expo-ads-admob';
 
 const GET_RESTAURANT = gql`
@@ -78,9 +79,9 @@ export default function HomeScreen() {
           let location = await Location.getCurrentPositionAsync({});
           setLocation(location);
         })();
-        // (async () => {
-        //     await setTestDeviceIDAsync('EMULATOR');
-        // })(); 
+        (async () => {
+            await setTestDeviceIDAsync('EMULATOR');
+        })(); 
       }, []);
 
     if(data){
@@ -124,9 +125,9 @@ export default function HomeScreen() {
             <>
             <AdMobBanner
                 bannerSize="smartBannerPortrait"
-                adUnitID="ca-app-pub-3940256099942544/5662855259"
+                adUnitID="ca-app-pub-6177909781754288/4231839886"
                 servePersonalizedAds={true}
-                //onDidFailToReceiveAdWithError={this.bannerError} 
+                onDidFailToReceiveAdWithError={(e) => console.log(e)} 
                 />
             <View style={styles.logoContainer}>
                 <Image
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
         padding: 11,
         borderRadius: 25,
         borderWidth: 1,
-        margin: 5
+        marginHorizontal: 5
     },
     container: {
         flex: 1,     
