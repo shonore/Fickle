@@ -50,6 +50,7 @@ const GET_RESTAURANT = gql`
             location {
                 formatted_address       
             }
+            photos
         }
     }
  }
@@ -162,10 +163,9 @@ export default function HomeScreen() {
             </Formik>
         )
     };
-    const getFooter = () => {
-        
+    const getFooter = () => {        
         if(error){
-            return (<Text>{error.message}</Text>)
+            return (<Text>Looks like something went wrong. {error.message}</Text>)
         }
         if(!data){
             return(
@@ -174,7 +174,6 @@ export default function HomeScreen() {
                 <Image style={styles.footerImg} source={require('../assets/img/woman-thinking.png')}></Image>
             </View>)
         }
-
         return null
     };
   return (
@@ -205,7 +204,7 @@ export default function HomeScreen() {
                         <OpenURLButton url={item?.url} name="yelp" />
                     </View>
                     <Card.Divider/>
-                    <Card.Image source={require('../assets/img/selection.jpg')}></Card.Image>                   
+                    <Card.Image source={item.photos.length ? {uri:item.photos[0]} : require('../assets/img/selection.jpg')}></Card.Image>                   
                 </Card>
                 </View>
             )
