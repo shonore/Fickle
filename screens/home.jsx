@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { 
     FlatList, 
     SafeAreaView,
@@ -13,19 +13,20 @@ import {
     Image, 
     Alert} from 'react-native';
 import { Card } from 'react-native-elements'
-import { Formik } from 'formik';
+import { Formik, Field } from 'formik';
 import { FontAwesome5 } from '@expo/vector-icons'; 
-import DropDownPicker from 'react-native-dropdown-picker';
-import {gql,useLazyQuery } from '@apollo/client'
+import SelectDropdown from 'react-native-select-dropdown'
+import {gql,useLazyQuery} from '@apollo/client'
 import * as Location from 'expo-location';
 import {LogBox} from 'react-native';
 import {
     AdMobBanner,
     setTestDeviceIDAsync
   } from 'expo-ads-admob';
+import {AppStateContext} from '../appcontext'
 
 const GET_RESTAURANT = gql`
- query ($term: String, $latitude: Float!, $longitude: Float!, $price: String){
+ query GET_RESTAURANT($term: String, $latitude: Float!, $longitude: Float!, $price: String){
     search(
         term: $term
         latitude: $latitude,
@@ -58,17 +59,17 @@ const GET_RESTAURANT = gql`
 
 export default function HomeScreen() {
     const [location, setLocation] = useState();
-    const [open, setOpen] = useState(false);
-    const [priceValue, setPriceValue] = useState();
     const priceItems = [
         {label: 'any', value: '1,2,3'},
         {label: '$', value: '1'},
         {label: '$$', value: '2'},
         {label: '$$$', value: '3'}
     ]
-    const ref = useRef(null);
+    const ref = useRef();
+    const appContext = useContext(AppStateContext);
     const [getRestaurant, { loading, data, error }] = useLazyQuery(GET_RESTAURANT);
     LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
+    
     useEffect(() => {
         (async () => {
           let { status } = await Location.requestForegroundPermissionsAsync();
@@ -76,7 +77,6 @@ export default function HomeScreen() {
             Alert.alert('Permission to access location was denied');
             return;
           }
-    
           let location = await Location.getCurrentPositionAsync({});
           setLocation(location);
         })();
@@ -105,12 +105,12 @@ export default function HomeScreen() {
       
         return <FontAwesome5 style={styles.icon} name={name} size={24} color="red" onPress={handlePress} />;
     };
-    const openMap = (latitude, longitude) => {
+    const openMap = (restaurantLatitude, restaurantLongitude) => {
         if (Platform.OS === "ios") { 
-            Linking.openURL(`http://maps.apple.com/maps?daddr=${latitude},${longitude}`) 
+            Linking.openURL(`http://maps.apple.com/maps?daddr=${restaurantLatitude},${restaurantLongitude}`) 
         }     
         else { 
-            Linking.openURL(`http://maps.google.com/maps?daddr=${latitude},${longitude}`); 
+            Linking.openURL(`http://maps.google.com/maps?daddr=${restaurantLatitude},${restaurantLongitude}`); 
         }
     }
     const getHeader = () => {;
@@ -119,8 +119,8 @@ export default function HomeScreen() {
         }
         return (
             <Formik
-            initialValues={{ term: null}}
-            onSubmit={values => getRestaurant({errorPolicy: 'all' ,variables: {term: values.term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: priceValue}})}
+            initialValues={{ term: appContext.term, price: appContext.price, latitude: location?.coords.latitude, longitude: location?.coords.longitude}}
+            onSubmit={values => {getRestaurant({errorPolicy: 'all' ,variables: {term: values.term, latitude: location?.coords.latitude, longitude: location?.coords.longitude, price: appContext.price.value}})}}
             >
             {({handleChange, handleSubmit, values}) => (
             <>
@@ -137,27 +137,37 @@ export default function HomeScreen() {
                 />
             </View>
             <Text style={styles.header}>Let us pick where you eat so you can just enjoy</Text>
-            <DropDownPicker
-                open={open}
-                value={priceValue}
-                items={priceItems}
-                setOpen={setOpen}
-                setValue={setPriceValue}
-                closeAfterSelecting={true}
-                placeholder="Enter a price (Optional)"
-                placeholderStyle={{color: "grey"}}
-                style={styles.input}
+            <SelectDropdown 
+             data={priceItems}
+             onSelect={(selectedItem) => {
+                 appContext.price = selectedItem
+             }}
+             buttonTextAfterSelection={(selectedItem) => {
+                return selectedItem.label
+            }}
+            rowTextForSelection={(item) => {
+                return item.label
+            }}
+            defaultButtonText={appContext.price.label ?? "Select a price (Optional)"}
+            buttonTextStyle={styles.selectText}
+            buttonStyle={styles.input}
             />
             <TextInput
                 value={values.term}
                 clearButtonMode={"always"}
                 style={styles.input}
                 onChangeText={handleChange('term')}
+                onChange={e => appContext.term = e.nativeEvent.text}
                 placeholder="Search Term (Optional)"
             />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonTxt}>Be Fickle</Text>
-            </TouchableOpacity>
+            <Text>location: {location?.coords.latitude}, {location?.coords.longitude}</Text>
+            <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={!location}>
+                {location ? 
+                    <Text style={styles.buttonTxt}>Feelin' Fickle</Text> 
+                    :
+                    <View style={styles.container}><ActivityIndicator size="large" /></View>
+                }
+            </TouchableOpacity>           
             </> 
             )}                
             </Formik>
@@ -293,7 +303,12 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginHorizontal: 10,
         padding: 10,
-        borderRadius: 10
+        borderRadius: 10,
+        backgroundColor: '#FFFFFF'
+      },
+      selectText: {
+          fontSize: 14,
+          textAlign: 'left'
       },
       logo: {
           margin: "auto",

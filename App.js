@@ -3,6 +3,7 @@ import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink} from '@apollo/cl
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/home'
+import {AppStateProvider} from './appcontext'
 import { REACT_APP_API_KEY,REACT_APP_URL } from '@env'
 
 const client = new ApolloClient({
@@ -20,6 +21,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   return (
+    <AppStateProvider>
     <ApolloProvider client={client}>
       <NavigationContainer>
         <Stack.Navigator>
@@ -27,5 +29,6 @@ export default function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </ApolloProvider>
+    </AppStateProvider>
   );
 }
