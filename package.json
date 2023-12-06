@@ -9,7 +9,7 @@
     "debug": "open 'rndebugger://set-debugger-loc?host=localhost&port=19001' && expo start"
   },
   "dependencies": {
-    "@apollo/client": "^3.3.19",
+    "@apollo/client": "^3.8.7",
     "@react-native-community/masked-view": "0.1.10",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
